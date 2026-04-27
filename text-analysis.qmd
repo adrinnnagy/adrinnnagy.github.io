@@ -1,0 +1,229 @@
+---
+title: "Text Analysis: Dear Abby Letters"
+author: "Adrienn Nagy"
+format:
+  html:
+    code-fold: true
+    code-tools: true
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r m1, echo=FALSE}
+#| include: FALSE
+
+library(tidyverse)
+library(tidytext)
+library(textdata)
+library(wordcloud)
+library(wordcloud2)
+library(viridis)
+library(ggthemes)
+library(gutenbergr)
+library(RColorBrewer)
+```
+
+```{r m2, echo=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
+posts <- read_csv("https://raw.githubusercontent.com/the-pudding/data/master/dearabby/raw_da_qs.csv")
+```
+
+### Introduction
+
+In this project I will analyze questions sent into the Dear Abby advice column that was founded in 1956 and is still currently active. People immediately took a liking to this type of media because it was honest, relatable, (and a little messy). The column offered accessable advice to personal struggles with an empathetic, practical and often witty voice while addressing taboo subjects around mental health, sexuality, or politics. In this project I would like to answer some questions about the most commonly asked questions and topics by searching for commonly used words, common word pairs, and whether the questions appear to be more positive, negative or carry other sentiments in the majority. 
+
+### Preparing the Data
+
+```{r m3, echo=FALSE}
+#| include: false
+
+tidy_posts <- posts |>
+  select(-url, -letterId) |>
+  mutate(line = row_number()) |>
+  unnest_tokens(word, question_only, token = "words")   
+
+tidy_posts  
+
+posts |> slice_tail(n = 10)
+tidy_posts |> slice_tail(n = 20)
+```
+
+To analyze the text, I converted the questions into individual words using tokenization. This will allow me to count word appearances, look at sentiment patterns, and discover overall patterns across the data set. 
+
+### Analyzing Data With Str Functions
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| results: 'hide'
+
+posts_strings <- posts |>
+  select(question_only) |>
+  filter(!is.na(question_only)) |>
+  mutate(
+    text_length = str_length(question_only),
+    has_family = str_detect(str_to_lower(question_only),
+                            "mother|father|husband|wife|family|children"),
+    has_relationship = str_detect(str_to_lower(question_only),
+                                  "married|love|divorce|boyfriend|girlfriend"),
+    question_count = str_count(question_only, "\\?")
+  )
+
+posts_strings |>
+  summarise(
+    family_letters = sum(has_family),
+    relationship_letters = sum(has_relationship),
+    avg_question_marks = mean(question_count),
+    avg_text_length = mean(text_length)
+  )
+```
+
+From this initial analysis I wanted to explore some basic patterns. I looked for words mentioning family members, romantic relationships, and how often question marks appear to get a first impression of the data. The summary shows that questions involving these two topics I selected appear often which supports the fact that the Dear Abby advice column is most often giving advice about personal relationships. I used str_detect() to search for certain words, str_count() to count the question marks, and str_lentgh() to measure the length of the questions. 
+
+### Most Common Words 
+
+Firstly, I would like to look at the most commonly used words across the questions to see if I can pick out any obvious themes that seem to be reappearing in people's letters. This can show what kind of things people struggle with the most in their everyday lives that they would like to get someone else's insight on. To do this, I decided to remove common stop words like "the", "and" or "to" and created a horizontal bar plot with the 20 most common words. 
+
+```{r m4, echo=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-alt: "This horizontal bar chart shows the 20 most common words in Dear Abby letters after removing stop words. The x-axis shows word frequency (range from 0 to 10000) and the y-axis lists the 20 words. Words such as husband, mother, family, married, and children appear most frequently, showing that many letters focus on family and relationship issues."
+
+
+# most common words
+smart_stopwords <- get_stopwords(source = "smart")
+
+tidy_posts |>
+  anti_join(smart_stopwords) |> 
+  count(word, sort = TRUE) |>
+  filter(word != "NA") |>
+  slice_max(n, n = 20) |> 
+  ggplot(aes(fct_reorder(word, n), n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Most Common Words in Dear Abby Letters",
+       x = "Words",
+       y = "Word Frequency") 
+```
+
+Fig-alt: "This horizontal bar chart shows the 20 most common words in Dear Abby letters after removing stop words. The x-axis shows word frequency (range from 0 to 10000) and the y-axis lists the 20 words. Words such as husband, mother, family, married, and children appear most frequently, showing that many letters focus on family and relationship issues."
+
+This plot revealed that the most common words in the database include "years", "husband", "mother", "family", "married", and "children". These words suggest that many questions revolve around family relationships and married life. Romantic relationships and marital issued seem to be frequent topics, as well family conflicts or parenting concerns. Words like "love", "problem", "feel" seem to suggest that the writer's of the questions are looking for emotional advice about personal situations. 
+
+### Word Cloud 
+
+The world cloud shows another kind of visual summary of the most common words used in the letters sent to the advice column. Larger words appear more frequently in the dataset like "husband", "mother", or "family", reinforcing the earlier findings about personal relationships. This visualization provides a quick way to see the most dominant themes of the dataset. 
+
+```{r m5, echo=FALSE}
+#| warning: FALSE
+#| message: FALSE
+
+words <- tidy_posts |>
+  anti_join(stop_words) |>
+  count(word, sort = TRUE) |>
+  filter(word != "na", word != "abby", word != "dear") |>
+  arrange(desc(n))
+
+wordcloud(
+  words = words$word, 
+  freq = words$n, 
+  max.words = 100, 
+  random.order = FALSE, 
+  rot.per = 0.35,
+  scale = c(3.5, 0.25),
+  colors = brewer.pal(6, "Dark2"))
+```
+
+### Top Word Pairs 
+
+To examine the most common words more closely I wanted to know what words these top 20 are most commonly paired with. These word pairs once again revealed family dynamics and romantic relationships that seem to be central themes for the Dear Abby advice column with word pairs like "happily married", "sex life", "single mother", or "beautiful children" being used more frequently. Furthermore, it showed life stages and age differences among the readers with pairs like "young man", "grown children", "nursing home", or "young children" which indicates more generational issues that people list as common problems they are dealing with. 
+
+```{r m6, echo=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
+top_words <- tidy_posts |>
+  anti_join(smart_stopwords, by = "word") |> 
+  count(word, sort = TRUE) |>
+  filter(word != "na") |>
+  slice_max(n, n = 20) |>
+  pull(word)
+
+top_word_pairs <- posts |>
+  select(question_only) |>
+  unnest_tokens(bigram, question_only, token = "ngrams", n = 2) |>
+  separate(bigram, into = c("word1", "word2"), sep = " ") |>
+  anti_join(smart_stopwords, by = c("word1" = "word")) |>
+  anti_join(smart_stopwords, by = c("word2" = "word")) |>
+  filter(word2 %in% top_words) |>
+  filter(word1 != "years", word2 != "years") |>
+  filter(word1 != "year", word2 != "year") |>
+  filter(!(word1 == "dear" & word2 == "abby")) |>
+  filter(word1 != "time", word2 != "time") |>
+  count(word1, word2, sort = TRUE)
+
+top_word_pairs |>
+  unite(pair, word1, word2, sep = " ") |>
+  slice_max(n, n = 20) |>
+  ggplot(aes(x = n, y = fct_reorder(pair, n))) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Most Common Two-Word Phrases Appearing in Dear Abby Letters",
+    x = "Frequency",
+    y = "Word Pair"
+  )
+```
+
+### Sentiment Analysis
+
+For gain further insight into the emotional tone of the questions that are being asked as part of this advice column, I run a sentiment analysis separating the words into their respected sentiments like anger, anticipation, disgust, joy etc. A suprising and interesting result was that the word "mother" appeared in the top frequency in 5 opposing categories: joy, sadness, negative, positive, trust. The same word also appeared in less frequency in anticipation. This shows that discussions involving mothers are emotionally complex and can be associated with both positive and negative emotions. The word "mother" likely appears in loving family relationships, as well as situations including conflicts, worry or more difficult family relationships. 
+
+Overall, it seems family relationships make up most of the emotional language in these advice columns. Negative emotions often relate to conflicts and hardships with words like "problem", "afraid", "bad" or "hurt". While positive emotions are often tied to relationships like "love", "child", "daughter", or "friend". 
+
+```{r m7, echo=FALSE}
+#| include: false
+
+nrc_sentiments <- get_sentiments(lexicon = "nrc")
+```
+
+```{r m8, echo=FALSE}
+#| include: false
+
+tidy_posts |>   
+  inner_join(nrc_sentiments, relationship = "many-to-many") |> 
+  count(sentiment, sort = TRUE) 
+```
+
+```{r m9, echo=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
+tidy_posts |>
+  inner_join(nrc_sentiments, relationship = "many-to-many") |>
+  count(sentiment, word, sort = TRUE) |>
+  group_by(sentiment) |>
+  slice_max(n, n = 10) |>
+  ungroup() |>
+  ggplot(aes(x = fct_reorder(word, n), y = n, fill = sentiment)) +
+    geom_col() +  
+    coord_flip() +
+    facet_wrap(~ sentiment, scales = "free") +
+  labs(
+    title = "Sentiment Analysis of Dear Abby Letters",
+    x = "Most Common Words",
+    y = "Frequency"
+  )
+```
+
+### Conclusion
+
+This analysis shows that Dear Abby letters regularly focus on personal relationships like family situations or romantic partnerships. The themes suggests that many people write to the column for advice about marriage, parenting, or conflicts with loved ones. The word pair analysis provided some insight into common life situations and relationship dynamics, while the sentiment analysis revealed that the letters contain both negative and positive emotions. Some words reflect conflict and problems, while others focus on joy or trust. This reflects the complicated relationships we can have in our life, both meaningful and difficult. Overall, Dear Abby letters provide insight into everyday challenges people face and it becomes clear that many people turn to Dear Abby for guidance with their problems. 
+

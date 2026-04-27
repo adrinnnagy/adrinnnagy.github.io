@@ -1,19 +1,22 @@
 project:
   type: website
+  output-dir: docs
 
 website:
-  title: "adrinnnagy.github.i"
+  title: "adrinnnagy.github.io"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - href: text-analysis.qmd
+        text: Text Analysis
+      - href: maps.qmd
+        text: Maps
 
 format:
   html:
     theme:
-      - cosmo
-      - brand
+      - minty
     css: styles.css
     toc: true
 

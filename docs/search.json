@@ -1,0 +1,58 @@
+[
+  {
+    "objectID": "text-analysis.html",
+    "href": "text-analysis.html",
+    "title": "Text Analysis: Dear Abby Letters",
+    "section": "",
+    "text": "Introduction\nIn this project I will analyze questions sent into the Dear Abby advice column that was founded in 1956 and is still currently active. People immediately took a liking to this type of media because it was honest, relatable, (and a little messy). The column offered accessable advice to personal struggles with an empathetic, practical and often witty voice while addressing taboo subjects around mental health, sexuality, or politics. In this project I would like to answer some questions about the most commonly asked questions and topics by searching for commonly used words, common word pairs, and whether the questions appear to be more positive, negative or carry other sentiments in the majority.\n\n\nPreparing the Data\nTo analyze the text, I converted the questions into individual words using tokenization. This will allow me to count word appearances, look at sentiment patterns, and discover overall patterns across the data set.\n\n\nAnalyzing Data With Str Functions\nFrom this initial analysis I wanted to explore some basic patterns. I looked for words mentioning family members, romantic relationships, and how often question marks appear to get a first impression of the data. The summary shows that questions involving these two topics I selected appear often which supports the fact that the Dear Abby advice column is most often giving advice about personal relationships. I used str_detect() to search for certain words, str_count() to count the question marks, and str_lentgh() to measure the length of the questions.\n\n\nMost Common Words\nFirstly, I would like to look at the most commonly used words across the questions to see if I can pick out any obvious themes that seem to be reappearing in people’s letters. This can show what kind of things people struggle with the most in their everyday lives that they would like to get someone else’s insight on. To do this, I decided to remove common stop words like “the”, “and” or “to” and created a horizontal bar plot with the 20 most common words.\n\n\n\n\n\n\n\n\n\nFig-alt: “This horizontal bar chart shows the 20 most common words in Dear Abby letters after removing stop words. The x-axis shows word frequency (range from 0 to 10000) and the y-axis lists the 20 words. Words such as husband, mother, family, married, and children appear most frequently, showing that many letters focus on family and relationship issues.”\nThis plot revealed that the most common words in the database include “years”, “husband”, “mother”, “family”, “married”, and “children”. These words suggest that many questions revolve around family relationships and married life. Romantic relationships and marital issued seem to be frequent topics, as well family conflicts or parenting concerns. Words like “love”, “problem”, “feel” seem to suggest that the writer’s of the questions are looking for emotional advice about personal situations.\n\n\nWord Cloud\nThe world cloud shows another kind of visual summary of the most common words used in the letters sent to the advice column. Larger words appear more frequently in the dataset like “husband”, “mother”, or “family”, reinforcing the earlier findings about personal relationships. This visualization provides a quick way to see the most dominant themes of the dataset.\n\n\n\n\n\n\n\n\n\n\n\nTop Word Pairs\nTo examine the most common words more closely I wanted to know what words these top 20 are most commonly paired with. These word pairs once again revealed family dynamics and romantic relationships that seem to be central themes for the Dear Abby advice column with word pairs like “happily married”, “sex life”, “single mother”, or “beautiful children” being used more frequently. Furthermore, it showed life stages and age differences among the readers with pairs like “young man”, “grown children”, “nursing home”, or “young children” which indicates more generational issues that people list as common problems they are dealing with.\n\n\n\n\n\n\n\n\n\n\n\nSentiment Analysis\nFor gain further insight into the emotional tone of the questions that are being asked as part of this advice column, I run a sentiment analysis separating the words into their respected sentiments like anger, anticipation, disgust, joy etc. A suprising and interesting result was that the word “mother” appeared in the top frequency in 5 opposing categories: joy, sadness, negative, positive, trust. The same word also appeared in less frequency in anticipation. This shows that discussions involving mothers are emotionally complex and can be associated with both positive and negative emotions. The word “mother” likely appears in loving family relationships, as well as situations including conflicts, worry or more difficult family relationships.\nOverall, it seems family relationships make up most of the emotional language in these advice columns. Negative emotions often relate to conflicts and hardships with words like “problem”, “afraid”, “bad” or “hurt”. While positive emotions are often tied to relationships like “love”, “child”, “daughter”, or “friend”.\n\n\n\n\n\n\n\n\n\n\n\nConclusion\nThis analysis shows that Dear Abby letters regularly focus on personal relationships like family situations or romantic partnerships. The themes suggests that many people write to the column for advice about marriage, parenting, or conflicts with loved ones. The word pair analysis provided some insight into common life situations and relationship dynamics, while the sentiment analysis revealed that the letters contain both negative and positive emotions. Some words reflect conflict and problems, while others focus on joy or trust. This reflects the complicated relationships we can have in our life, both meaningful and difficult. Overall, Dear Abby letters provide insight into everyday challenges people face and it becomes clear that many people turn to Dear Abby for guidance with their problems."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Home",
+    "section": "",
+    "text": "Welcome to my personal data science portfolio!\n\n\n\nI am a current sophomore at St. Olaf College interested in data science and statistics. I enjoy working with data to understand the world around me better and uncover patterns I might not have noticed otherwise.\nThis website showcases some of the work I have completed this semester, including a text analysis project and a data visualization project.\n\n\n\n\n\nText Analysis Project – exploring patterns in text data\n\nMaps Project – interactive U.S. state-level visualizations"
+  },
+  {
+    "objectID": "index.html#about-me",
+    "href": "index.html#about-me",
+    "title": "Home",
+    "section": "",
+    "text": "I am a current sophomore at St. Olaf College interested in data science and statistics. I enjoy working with data to understand the world around me better and uncover patterns I might not have noticed otherwise.\nThis website showcases some of the work I have completed this semester, including a text analysis project and a data visualization project."
+  },
+  {
+    "objectID": "index.html#what-youll-find-here",
+    "href": "index.html#what-youll-find-here",
+    "title": "Home",
+    "section": "",
+    "text": "Text Analysis Project – exploring patterns in text data\n\nMaps Project – interactive U.S. state-level visualizations"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "maps.html",
+    "href": "maps.html",
+    "title": "U.S. State Maps",
+    "section": "",
+    "text": "This page presents choropleth maps of U.S. states using both a numeric and a categorical variable. Each variable is shown using a static map and an interactive map.\nData source: poliscidata::states\n\n\n\nCode\n# Prepare mapping data\n\nstates_polygon &lt;- as_tibble(map_data(\"state\")) |&gt;\n  select(region, group, order, lat, long)\n\nstates_sf &lt;- \n  read_sf(\"https://rstudio.github.io/leaflet/json/us-states.geojson\") |&gt;\n  select(name, geometry)\n\npolisci_data &lt;- as_tibble(poliscidata::states) |&gt;\n  select(state, carfatal07, cook_index3)\n\n# Clean keys\n\npolisci_data &lt;- polisci_data |&gt;\n  mutate(state = str_to_lower(state),\n         state = str_squish(state))\n\nstates_polygon &lt;- states_polygon |&gt;\n  mutate(region = str_to_lower(region),\n         region = str_squish(region))\n\nstates_sf &lt;- states_sf |&gt;\n  mutate(name = str_to_lower(name),\n         name = str_squish(name))\n\n# Merge\n\nstate_plotting_polygon &lt;- states_polygon |&gt;\n  left_join(polisci_data, by = c(\"region\" = \"state\"))\n\nstate_plotting_sf &lt;- states_sf |&gt;\n  left_join(polisci_data, by = c(\"name\" = \"state\")) |&gt;\n  filter(!(name %in% c(\"alaska\", \"hawaii\", \"puerto rico\")))"
+  },
+  {
+    "objectID": "maps.html#interactive-map",
+    "href": "maps.html#interactive-map",
+    "title": "U.S. State Maps",
+    "section": "Interactive Map",
+    "text": "Interactive Map\n\n\n\n\n\n\nInsight: Higher car fatality rates appear in parts of the South and central U.S., while lower rates are more common in coastal regions."
+  },
+  {
+    "objectID": "maps.html#interactive-map-1",
+    "href": "maps.html#interactive-map-1",
+    "title": "U.S. State Maps",
+    "section": "Interactive Map",
+    "text": "Interactive Map\n\n\n\n\n\n\nInsight: Republican-leaning states are mostly located in the South and central U.S., while Democratic-leaning states are concentrated on the West Coast and Northeast."
+  }
+]

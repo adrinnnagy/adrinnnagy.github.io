@@ -1,0 +1,160 @@
+---
+title: "U.S. State Maps"
+author: "Adrienn Nagy"
+format:
+  html:
+    code-fold: true
+    toc: true
+---
+
+```{r}
+#| include: FALSE
+
+library(tidyverse)
+library(stringr)
+library(maps)
+library(sf)
+library(leaflet)
+library(htmltools)
+library(poliscidata)
+library(viridis)
+```
+
+# Introduction
+
+This page presents choropleth maps of U.S. states using both a numeric and a categorical variable. Each variable is shown using a static map and an interactive map.
+
+Data source: `poliscidata::states`
+
+---
+
+```{r}
+# Prepare mapping data
+
+states_polygon <- as_tibble(map_data("state")) |>
+  select(region, group, order, lat, long)
+
+states_sf <- 
+  read_sf("https://rstudio.github.io/leaflet/json/us-states.geojson") |>
+  select(name, geometry)
+
+polisci_data <- as_tibble(poliscidata::states) |>
+  select(state, carfatal07, cook_index3)
+
+# Clean keys
+
+polisci_data <- polisci_data |>
+  mutate(state = str_to_lower(state),
+         state = str_squish(state))
+
+states_polygon <- states_polygon |>
+  mutate(region = str_to_lower(region),
+         region = str_squish(region))
+
+states_sf <- states_sf |>
+  mutate(name = str_to_lower(name),
+         name = str_squish(name))
+
+# Merge
+
+state_plotting_polygon <- states_polygon |>
+  left_join(polisci_data, by = c("region" = "state"))
+
+state_plotting_sf <- states_sf |>
+  left_join(polisci_data, by = c("name" = "state")) |>
+  filter(!(name %in% c("alaska", "hawaii", "puerto rico")))
+```
+
+# Numeric Variable: Car Fatalities
+
+This map shows the number of car fatalities by state.
+
+```{r}
+#| echo: false
+
+state_plotting_polygon |>
+  ggplot(aes(x = long, y = lat, group = group)) + 
+  geom_polygon(aes(fill = carfatal07), color = "black") + 
+  labs(fill = "Car Fatalities",
+       title = "Car Fatalities by State") +
+  coord_map() + 
+  theme_void() +  
+  scale_fill_viridis()
+```
+
+## Interactive Map
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+pal_num <- colorNumeric("viridis", domain = state_plotting_sf$carfatal07)
+
+state_plotting_sf <- state_plotting_sf |>
+  mutate(labels_num = str_c(name, ": ", carfatal07))
+
+labels_num <- lapply(state_plotting_sf$labels_num, HTML)
+
+leaflet(state_plotting_sf) |>
+  setView(-96, 37.8, 4) |>
+  addTiles() |>
+  addPolygons(
+    fillColor = ~pal_num(carfatal07),
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    fillOpacity = 0.7,
+    label = labels_num
+  )
+```
+
+**Insight:** Higher car fatality rates appear in parts of the South and central U.S., while lower rates are more common in coastal regions.
+
+---
+
+# Categorical Variable: Political Leaning (Cook Index)
+
+This map shows political leaning of each state.
+
+```{r}
+#| echo: false
+
+state_plotting_polygon |>
+  ggplot(aes(x = long, y = lat, group = group)) + 
+  geom_polygon(aes(fill = cook_index3), color = "grey") + 
+  labs(fill = "Cook Index",
+       title = "Political Leaning by State") +
+  coord_map() + 
+  theme_void() +  
+  scale_fill_manual(values = c("red", "yellow", "blue"))
+```
+
+## Interactive Map
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+pal_cat <- colorFactor(c("red", "yellow", "blue"), domain = state_plotting_sf$cook_index3)
+
+state_plotting_sf <- state_plotting_sf |>
+  mutate(labels_cat = str_c(name, ": ", cook_index3))
+
+labels_cat <- lapply(state_plotting_sf$labels_cat, HTML)
+
+leaflet(state_plotting_sf) |>
+  setView(-96, 37.8, 4) |>
+  addTiles() |>
+  addPolygons(
+    fillColor = ~pal_cat(cook_index3),
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    fillOpacity = 0.7,
+    label = labels_cat
+  )
+```
+
+**Insight:** Republican-leaning states are mostly located in the South and central U.S., while Democratic-leaning states are concentrated on the West Coast and Northeast.
